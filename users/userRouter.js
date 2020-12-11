@@ -1,141 +1,257 @@
+// const express = require('express');
+// const db = require('./userDb.js');
+// const postdb = require('../posts/postDb.js');
+// const postRouter = ('../posts/postRouter')
+
+// const router = express.Router();
+// router.use('/:id', validateUserId)
+// router.use('/:id/posts/', postRouter);
+
+
+// //-----------------------------------------------//
+// // POST /API/USERS  use .insert() for post.
+// router.post('/', validateUser, (req, res) => {
+//   db.insert(req.body)
+//   .then(result => {
+//     res.status(201).json(result)
+//   })  
+// });
+
+// //-----------------------------------------------//
+// // POST /API/USERS/ID/POSTS
+// router.post('/:id/posts', validatePost, (req, res) => {
+//   postdb.insert(req.body)
+//   .then(result => {
+//     res.status(201).json(result)
+//   })
+//   .catch(err => {
+//     res.status(500).json({errorMessage: "Sorry, something whent wrong"})
+//   })
+// });
+
+// //-----------------------------------------------//
+// // GET /API/USERS
+// router.get('/', (req, res) => {
+//   db.get()
+//   .then(result => {
+//     res.status(200).json(result)
+//   })
+// });
+
+// //-----------------------------------------------//
+// // GET /API/USERS/ID
+// router.get('/:id', (req, res) => {
+//   // Will return a user with specified id
+//   res.status(200).json(req.user);
+// });
+
+// //-----------------------------------------------//
+// // GET /API/USERS/ID/POSTS
+// router.get('/:id/posts', (req, res) => {
+//   // Users.getUserPosts(req.user.id)
+//   //   .then((data) => {
+//   //     res.status(200).json(data)
+//   //   })
+//   //   .catch((data) => {
+//   //     res.status(500).json({ error: "Something went wrong" })
+//   //   })
+// });
+
+// //-----------------------------------------------//
+// // DELETE /API/USERS
+// router.delete('/:id', (req, res) => {
+//   db.remove(req.user.id)
+//   .then(result => {
+//     res.status(204).end()
+//   })
+//   .catch(erro => {
+//     res.status(500).json({errorMessage: "Sorry something went wrong"})
+//   })
+// });
+
+// //-----------------------------------------------//
+// // PUT /API/USERS
+// router.put('/:id', validateUser, (req, res) => {
+//   db.update(req.user.id, req.body)  // This is to update this req the user id and the body after this you can call the fo the result
+//   .then(result => {
+//     res.status(200).json({...req.body, id: req.user.id})
+//   })
+//   .catch(err => {
+//     res.status(500).json({errorMessage: "Sorry something went wrong"})
+//   })
+// });
+
+// //CUSTOM MIDDLEWARE. TO BE USED IN ROUTES
+// // 2. validateUserId
+// function validateUserId(req, res, next) {
+//   const userId = req.params.id ?  req.params.id : -1
+//   db.getById(userId)
+//   .then(result => {
+//     if (!result) {
+//       res.status(400).json({ message: "Invalid user id" })
+//     } 
+//     else {
+//       req.user = result
+//       next()
+//     }
+//   })
+//   .catch(err => {
+//     res.status(500).json({errorMessage: "Sorry something went wrong"})
+//   })  
+//   //IN Postman run ----  GET localhost:4000/api/users/1
+// }
+
+// //CUSTOM MIDDLEWARE. TO BE USED IN ROUTES
+// // 2. validateUser
+// function validateUser(req, res, next) {
+//   if (!req.body) {
+//     res.status(400).json({message: "Missing user data"})
+//   } 
+//   else if (!req.body.name) {
+//     res.status(400).json({ message: "Missing requierd name field" })
+//   } 
+//   else {
+//     next()
+//   }
+// }
+
+// //CUSTOM MIDDLEWARE. TO BE USED IN ROUTES
+// // 2. validatePost
+// function validatePost(req, res, next) {
+//   // This is to require the body 
+//   if (!req.body) {
+//     res.status(400).json({message: "Missing post data"})
+//   }   // This is to required the text in the body 
+//   else if (!req.body.text) {
+//     res.status(400).json({ message: "Missing required text field" })
+//   }
+//   else {
+//     req.body.user_id = req.params.id
+//     next()
+//   }
+// }
+
+// module.exports = router;
+
 const express = require('express');
-const Users = require('./userDb.js');
-const Posts = require('../posts/postDb.js');
+const db = require('./userDb')
+const postdb = require('../posts/postDb')
+const postRouter = require('../posts/postRouter')
 
 const router = express.Router();
+router.use('/:id', validateUserId)
+router.use('/:id/posts/', postRouter)
 
 
-//-----------------------------------------------//
-// POST /API/USERS
+//good
 router.post('/', validateUser, (req, res) => {
-  //This will create a new post. Using validateUser below will throw error if missing body.
-  res.status(201).json(req.body);
+  db.insert(req.body)
+    .then(result => {
+      res.status(201).json(result)
+    })
 });
 
-//-----------------------------------------------//
-// POST /API/USERS/ID/POSTS
-router.post('/:id/posts', (req, res) => {
-  res.status(201).json(req.body)
+//good
+router.post('/:id/posts', validatePost, (req, res) => {
+  // do your magic!
+  postdb.insert(req.body)
+    .then(result => {
+      res.status(201).json(result)
+    })
+    .catch(err => {
+      res.status(500).json({ errorMessage: 'Sorry, something went wrong' })
+    })
 });
 
-//-----------------------------------------------//
-// GET /API/USERS
+//good
 router.get('/', (req, res) => {
-  Users.get().then((data) => {
-
-    if  (data.length === 0) {
-      res.status(404).json({message: "There were no users found."})
-    } else {
-      res.status(200).json(data)
-    }
-  });
-});
-
-//-----------------------------------------------//
-// GET /API/USERS/ID
-router.get('/:id', validateUserId, (req, res) => {
-  // Will return a user with specified id
-  res.status(200).json(req.user);
-});
-
-//-----------------------------------------------//
-// GET /API/USERS/ID/POSTS
-router.get('/:id/posts', validateUserId, (req, res) => {
-  Users.getUserPosts(req.user.id)
-    .then((data) => {
-      res.status(200).json(data)
+  // do your magic!
+  db.get()
+    .then(result => {
+      res.status(200).json(result)
     })
-    .catch((data) => {
-      res.status(500).json({ error: "Something went wrong" })
+    .catch(err => {
+      res.status(500).json({ errorMessage: 'Sorry, something went wrong' })
     })
 });
 
-//-----------------------------------------------//
-// DELETE /API/USERS
-router.delete('/:id', validateUserId, (req, res) => {
-  Users.remove(req.user.id)
-    .then(data => {
-      if (data.length === 0) {
-        res.status(404).json({ message: "User does not exist" })
-      } else {
-        res.status(200).json("User has been deleted")
+//good
+router.get('/:id', (req, res) => {
+  res.status(200).json(req.user)
+});
+
+//good
+router.get('/:id/posts', (req, res) => {
+  // do your magic!
+
+});
+
+
+router.delete('/:id', (req, res) => {
+  // do your magic!
+  db.remove(req.user.id)
+    .then(result => {
+      res.status(204).end()
+    })
+    .catch(err => {
+      res.status(500).json({ errorMessage: 'Sorry Something went wrong' })
+    })
+});
+
+router.put('/:id', validateUser, (req, res) => {
+  // do your magic!
+  db.update(req.user.id, req.body)
+    .then(result => {
+      res.status(200).json({ ...req.body, id: req.user.id })
+    })
+    .catch(err => {
+      res.status(500).json({ errorMessage: 'Sorry Something went wrong' })
+    })
+});
+
+//custom middleware
+
+function validateUserId(req, res, next) {
+  const userId = req.params.id ? req.params.id : -1
+  db.getById(userId)
+    .then(result => {
+      if (!result) {
+        res.status(400).json({ message: "invalid user id" })
+      }
+      else {
+        req.user = result
+        next()
       }
     })
-    .catch(data => {
-      res.status(500).json({error: "Something went wrong."})
+    .catch(err => {
+      res.status(500).json({ message: 'Something went wrong' })
     })
-});
-
-//-----------------------------------------------//
-// PUT /API/USERS
-router.put('/:id', validateUserId, (req, res) => {
-  if(!req.body.name) {
-    res.status(400).json({message: "Missing required name field"});
-  } else {
-    Users.update(req.user.id, req.body)
-      .then(data => {
-        Users.getById(req.params.id)
-          .then(user => {
-            res.status(200).json(user)
-          })
-      })
-      .catch(data => {
-        res.status(500).json({error: "Something went wrong"})
-      })
-  }
-});
-
-//CUSTOM MIDDLEWARE. TO BE USED IN ROUTES
-// 2. validateUserId
-function validateUserId(req, res, next) {
-  Users.getById(req.params.id)
-  .then((data) => {
-    if (!data) {
-      res.status(400).json({ message: "Invalid user id" })
-    } else {
-      req.user = data;
-    }
-    next();
-  })
-  .catch((data) => res.status(500).json({ error: "Something went wrong"}));
-  //IN Postman run ----  GET localhost:4000/api/users/1
 }
 
-//CUSTOM MIDDLEWARE. TO BE USED IN ROUTES
-// 2. validateUser
 function validateUser(req, res, next) {
+  // do your magic!
   if (!req.body) {
-    res.status(400).json({ message: "Missing user data" })
-  } else if (!req.body.name) {
-    res.status(400).json({ message: "Missing required name field" })
-  } else {
-    Users.insert(req.body)
-      .then((data) => {
-        req.body = data;
-        next();
-      })
-      .catch((data) => {
-        res.status(500).json({ error: "Something went wrong" })
-      });
+    res.status(400).json({ message: "missing user data" })
+  }
+  else if (!req.body.name) {
+    res.status(400).json({ message: "missing required name field" })
+  }
+  else {
+    next()
   }
 }
 
-//CUSTOM MIDDLEWARE. TO BE USED IN ROUTES
-// 2. validatePost
 function validatePost(req, res, next) {
+  // do your magic!
   if (!req.body) {
-    res.status(400).json({ message: "Missing post data" });
-  } else if (!req.body.text) {
-    res.status(400).json({ message: "Missing required text field" })
-  } else {
-    Posts.insert({ ...req.body, user_id: req.params.id })
-      .then((data) => {
-        req.post = data;
-        next();
-      })
-      .catch((data) => {
-        res.status(500).json({ error: "Something went wrong" });
-      });
+    res.status(400).json({ message: "missing post data" })
+  }
+  else if (!req.body.text) {
+    res.status(400).json({ message: "missing required text field" })
+  }
+  else {
+    req.body.user_id = req.params.id
+    next()
   }
 }
 
